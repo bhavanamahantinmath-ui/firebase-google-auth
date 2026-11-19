@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Dashboard — Firebase Auth</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="profile-card" style="text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 12px; animation: pulse 1.5s infinite;">⚡</div>
+        <h2 class="profile-name" style="font-size: 1.5rem; color: #f8fafc; margin-bottom: 8px;">Opening LocalGPT Workspace...</h2>
+        <p class="profile-email" style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 24px;">Authenticated successfully with Google. Redirecting you to the main AI chat page...</p>
+        <a id="btn-manual-redirect" href="http://localhost:8501" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #2dd4bf, #10b981); color: #022c22; font-weight: 700; border-radius: 10px; text-decoration: none; font-size: 0.95rem; transition: transform 0.15s ease;">
+            Open Main Page Now &rarr;
+        </a>
+    </div>
+
+    <!-- Protected Route & Immediate Redirect to Main Page -->
+    <script type="module">
+        import { auth, onAuthStateChanged } from "./firebase-config.js";
+
+        // Redirect immediately to LocalGPT Pro main page
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            try {
+                const token = await user.getIdToken();
+                const email = encodeURIComponent(user.email || "");
+                const name = encodeURIComponent(user.displayName || (user.email ? user.email.split("@")[0] : "User"));
+                const uid = encodeURIComponent(user.uid || "");
+                const pic = encodeURIComponent(user.photoURL || "");
+                window.location.href = `http://localhost:8501/?email=${email}&name=${name}&uid=${uid}&token=${encodeURIComponent(token)}&picture=${pic}`;
+            } catch (e) {
+                window.location.href = `http://localhost:8501/?email=${encodeURIComponent(user.email || "")}&name=${encodeURIComponent(user.displayName || "")}&uid=${encodeURIComponent(user.uid || "")}`;
+            }
+        });
+    </script>
+    </script>
+</body>
+</html>
+
