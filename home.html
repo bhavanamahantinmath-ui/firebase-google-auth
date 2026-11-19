@@ -3,44 +3,544 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Dashboard — Firebase Auth</title>
-    <link rel="stylesheet" href="style.css">
+    <title>ChatGPT Cloud</title>
+    <link rel="stylesheet" href="chatgpt.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
 <body>
 
-    <div class="profile-card" style="text-align: center;">
-        <div style="font-size: 3rem; margin-bottom: 12px; animation: pulse 1.5s infinite;">⚡</div>
-        <h2 class="profile-name" style="font-size: 1.5rem; color: #f8fafc; margin-bottom: 8px;">Opening LocalGPT Workspace...</h2>
-        <p class="profile-email" style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 24px;">Authenticated successfully with Google. Redirecting you to the main AI chat page...</p>
-        <a id="btn-manual-redirect" href="http://localhost:8501" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #2dd4bf, #10b981); color: #022c22; font-weight: 700; border-radius: 10px; text-decoration: none; font-size: 0.95rem; transition: transform 0.15s ease;">
-            Open Main Page Now &rarr;
-        </a>
-    </div>
+    <!-- =========================================================================
+         1. Left Navigation Sidebar
+         ========================================================================= -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-top">
+            
+            <!-- Brand Logo & Top Controls -->
+            <div class="brand-row">
+                <a href="#" class="brand-logo" id="brand-home-btn">
+                    <span>ChatGPT</span>
+                    <span class="cloud-badge">Cloud</span>
+                </a>
+                <div class="brand-actions">
+                    <button class="icon-btn" id="btn-search-chats" title="Search chats">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" id="btn-toggle-sidebar" title="Collapse sidebar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="9" y1="3" x2="9" y2="21"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
 
-    <!-- Protected Route & Immediate Redirect to Main Page -->
+            <!-- New Chat Button -->
+            <button class="btn-new-chat" id="btn-new-chat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+                New chat
+            </button>
+
+            <!-- Recents Section -->
+            <div class="recents-section">
+                <div class="recents-label">Recents</div>
+                <ul class="recents-list" id="recents-list">
+                    <li class="recent-item active" data-chat="new">
+                        <span class="recent-title">New chat</span>
+                    </li>
+                    <li class="recent-item" data-chat="kannada">
+                        <span class="recent-title">Kannada Vocabulary</span>
+                    </li>
+                    <li class="recent-item" data-chat="ml">
+                        <span class="recent-title">Project Phase 3 Specs</span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Sidebar Footer: Logged-in User Info & Logout -->
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <img id="user-avatar" class="user-avatar-img" src="" alt="Profile" style="display: none;">
+                <div id="user-initial" class="user-avatar-initial">B</div>
+                <div class="user-details">
+                    <span id="user-name" class="user-name">Loading...</span>
+                    <span id="user-email" class="user-email">user@gmail.com</span>
+                </div>
+            </div>
+            <button class="btn-signout" id="btn-signout" title="Sign Out">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- =========================================================================
+         2. Main Application Area
+         ========================================================================= -->
+    <main class="main-wrapper">
+        
+        <!-- Top App Bar -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="sidebar-open-btn" id="btn-open-sidebar" title="Open Sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+
+                <div class="model-pill-group">
+                    <button class="model-pill active">Chat</button>
+                    <button class="model-pill secondary">
+                        <span style="color: #6366f1;">✨</span> + Work 
+                        <span style="font-size: 0.7rem; margin-left: 2px;">▾</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <button class="icon-btn" title="Model parameters & settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="4" y1="21" x2="4" y2="14"></line>
+                        <line x1="4" y1="10" x2="4" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12" y2="3"></line>
+                        <line x1="20" y1="21" x2="20" y2="16"></line>
+                        <line x1="20" y1="12" x2="20" y2="3"></line>
+                        <line x1="1" y1="14" x2="7" y2="14"></line>
+                        <line x1="9" y1="8" x2="15" y2="8"></line>
+                        <line x1="17" y1="16" x2="23" y2="16"></line>
+                    </svg>
+                </button>
+                <button class="icon-btn" title="Share chat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                        <polyline points="16 6 12 2 8 6"></polyline>
+                        <line x1="12" y1="2" x2="12" y2="15"></line>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Centered Welcome Screen (Exact Match to User Screenshot) -->
+        <section class="hero-center" id="hero-center">
+            
+            <h1 class="hero-headline">
+                How can I help you <span class="teal-accent">today?</span>
+            </h1>
+
+            <!-- Floating Pill Search / Input Box -->
+            <div class="chat-input-pill-wrapper">
+                <div class="chat-input-pill">
+                    
+                    <!-- Left Tools: Attachment & Camera -->
+                    <div class="pill-left-tools">
+                        <input type="file" id="file-uploader" style="display: none;" multiple>
+                        <button class="pill-icon-btn" id="btn-attach" title="Attach file or document">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                        <button class="pill-icon-btn" id="btn-camera" title="Upload image">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Center Text Input -->
+                    <input type="text" class="pill-input" id="hero-prompt-input" placeholder="Ask anything" autocomplete="off">
+
+                    <!-- Right Tools: Microphone & Wave Voice Action Button -->
+                    <div class="pill-right-tools">
+                        <button class="pill-icon-btn" id="btn-mic" title="Voice Input (Speech-to-Text)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="23"></line>
+                                <line x1="8" y1="23" x2="16" y2="23"></line>
+                            </svg>
+                        </button>
+
+                        <button class="voice-action-btn" id="btn-hero-send" title="Send message or Voice Mode">
+                            <!-- Voice Waveform Icon from Screenshot -->
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 3a1 1 0 0 1 1 1v16a1 1 0 0 1-2 0V4a1 1 0 0 1 1-1zm5 4a1 1 0 0 1 1 1v8a1 1 0 0 1-2 0V8a1 1 0 0 1 1-1zM7 7a1 1 0 0 1 1 1v8a1 1 0 0 1-2 0V8a1 1 0 0 1 1-1zm14 3a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM3 10a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Attached Files Badge Indicator (if any selected) -->
+                <div id="attachment-badge" style="display: none; margin-top: 10px; font-size: 0.85rem; color: #0d9488; background: rgba(13,148,136,0.1); padding: 4px 12px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px;">
+                    📎 <span id="attachment-name">file.pdf</span>
+                    <span id="btn-remove-attachment" style="cursor: pointer; margin-left: 6px; font-weight: bold;">✕</span>
+                </div>
+
+                <!-- Suggestion Action Chips -->
+                <div class="quick-action-chips">
+                    <button class="chip" data-query="Help me write or edit a professional text">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                        Write or edit
+                    </button>
+                    <button class="chip" data-query="Search the web for the latest updates on AI models">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                        Search the web
+                    </button>
+                    <button class="chip" data-query="Explain Kannada vocabulary words with their English meanings">
+                        <span>🇮🇳</span>
+                        Kannada vocabulary
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Active Conversation Scroll Area (Revealed once a query is sent) -->
+        <section class="chat-scroll-area" id="chat-thread-view">
+            <div class="chat-thread-container" id="chat-messages-container"></div>
+        </section>
+
+        <!-- Sticky Bottom Bar (Active during multi-turn conversation) -->
+        <div class="sticky-bottom-bar" id="sticky-bottom-bar">
+            <div class="chat-input-pill-wrapper">
+                <div class="chat-input-pill">
+                    <button class="pill-icon-btn" id="btn-attach-sticky" title="Attach file">+</button>
+                    <input type="text" class="pill-input" id="thread-prompt-input" placeholder="Ask anything" autocomplete="off">
+                    <button class="voice-action-btn" id="btn-thread-send">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 3a1 1 0 0 1 1 1v16a1 1 0 0 1-2 0V4a1 1 0 0 1 1-1zm5 4a1 1 0 0 1 1 1v8a1 1 0 0 1-2 0V8a1 1 0 0 1 1-1zM7 7a1 1 0 0 1 1 1v8a1 1 0 0 1-2 0V8a1 1 0 0 1 1-1zm14 3a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM3 10a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- =========================================================================
+         3. Application Controller & Firebase Protected Route
+         ========================================================================= -->
     <script type="module">
-        import { auth, onAuthStateChanged } from "./firebase-config.js";
+        import { auth, signOut, onAuthStateChanged } from "./firebase-config.js";
 
-        // Redirect immediately to LocalGPT Pro main page
-        onAuthStateChanged(auth, async (user) => {
+        // DOM elements
+        const userNameEl = document.getElementById("user-name");
+        const userEmailEl = document.getElementById("user-email");
+        const userAvatarEl = document.getElementById("user-avatar");
+        const userInitialEl = document.getElementById("user-initial");
+        const btnSignout = document.getElementById("btn-signout");
+        
+        const heroCenter = document.getElementById("hero-center");
+        const chatThreadView = document.getElementById("chat-thread-view");
+        const stickyBottomBar = document.getElementById("sticky-bottom-bar");
+        const messagesContainer = document.getElementById("chat-messages-container");
+        
+        const heroInput = document.getElementById("hero-prompt-input");
+        const threadInput = document.getElementById("thread-prompt-input");
+        const btnHeroSend = document.getElementById("btn-hero-send");
+        const btnThreadSend = document.getElementById("btn-thread-send");
+        const btnNewChat = document.getElementById("btn-new-chat");
+        const brandHomeBtn = document.getElementById("brand-home-btn");
+        
+        const fileUploader = document.getElementById("file-uploader");
+        const btnAttach = document.getElementById("btn-attach");
+        const btnAttachSticky = document.getElementById("btn-attach-sticky");
+        const btnCamera = document.getElementById("btn-camera");
+        const attachmentBadge = document.getElementById("attachment-badge");
+        const attachmentName = document.getElementById("attachment-name");
+        const btnRemoveAttachment = document.getElementById("btn-remove-attachment");
+        const btnMic = document.getElementById("btn-mic");
+        
+        const sidebar = document.getElementById("sidebar");
+        const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
+        const btnOpenSidebar = document.getElementById("btn-open-sidebar");
+        const recentsList = document.getElementById("recents-list");
+
+        let activeAttachment = null;
+        let isConversationStarted = false;
+
+        // 1. Firebase Route Guard: verify user is logged in
+        onAuthStateChanged(auth, (user) => {
             if (!user) {
+                // Not authenticated -> return to login page
                 window.location.href = "index.html";
                 return;
             }
 
-            try {
-                const token = await user.getIdToken();
-                const email = encodeURIComponent(user.email || "");
-                const name = encodeURIComponent(user.displayName || (user.email ? user.email.split("@")[0] : "User"));
-                const uid = encodeURIComponent(user.uid || "");
-                const pic = encodeURIComponent(user.photoURL || "");
-                window.location.href = `http://localhost:8501/?email=${email}&name=${name}&uid=${uid}&token=${encodeURIComponent(token)}&picture=${pic}`;
-            } catch (e) {
-                window.location.href = `http://localhost:8501/?email=${encodeURIComponent(user.email || "")}&name=${encodeURIComponent(user.displayName || "")}&uid=${encodeURIComponent(user.uid || "")}`;
+            // Hydrate User Profile
+            const displayName = user.displayName || user.email.split("@")[0];
+            userNameEl.textContent = displayName;
+            userEmailEl.textContent = user.email;
+
+            if (user.photoURL) {
+                userAvatarEl.src = user.photoURL;
+                userAvatarEl.style.display = "block";
+                userInitialEl.style.display = "none";
+            } else {
+                userInitialEl.textContent = displayName.charAt(0).toUpperCase();
+                userInitialEl.style.display = "flex";
+                userAvatarEl.style.display = "none";
             }
         });
+
+        // 2. Logout handler
+        btnSignout.addEventListener("click", async () => {
+            if (confirm("Are you sure you want to sign out?")) {
+                await signOut(auth);
+                window.location.href = "index.html";
+            }
+        });
+
+        // 3. New Chat / Reset
+        function resetToHome() {
+            isConversationStarted = false;
+            heroCenter.style.display = "flex";
+            chatThreadView.style.display = "none";
+            stickyBottomBar.style.display = "none";
+            messagesContainer.innerHTML = "";
+            heroInput.value = "";
+            threadInput.value = "";
+            clearAttachment();
+            document.querySelectorAll(".recent-item").forEach(i => i.classList.remove("active"));
+            const firstItem = document.querySelector(".recent-item");
+            if (firstItem) firstItem.classList.add("active");
+            heroInput.focus();
+        }
+
+        btnNewChat.addEventListener("click", resetToHome);
+        brandHomeBtn.addEventListener("click", (e) => { e.preventDefault(); resetToHome(); });
+
+        // 4. File Attachment handlers
+        btnAttach.addEventListener("click", () => fileUploader.click());
+        btnAttachSticky.addEventListener("click", () => fileUploader.click());
+        btnCamera.addEventListener("click", () => fileUploader.click());
+
+        fileUploader.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                activeAttachment = file;
+                attachmentName.textContent = file.name;
+                attachmentBadge.style.display = "inline-flex";
+            }
+        });
+
+        btnRemoveAttachment.addEventListener("click", clearAttachment);
+
+        function clearAttachment() {
+            activeAttachment = null;
+            fileUploader.value = "";
+            attachmentBadge.style.display = "none";
+        }
+
+        // 5. Microphone / Voice Input via Web Speech API
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            btnMic.addEventListener("click", () => {
+                btnMic.style.color = "#0d9488";
+                recognition.start();
+            });
+
+            recognition.onresult = (event) => {
+                const speechText = event.results[0][0].transcript;
+                if (!isConversationStarted) {
+                    heroInput.value = speechText;
+                    heroInput.focus();
+                } else {
+                    threadInput.value = speechText;
+                    threadInput.focus();
+                }
+                btnMic.style.color = "";
+            };
+
+            recognition.onerror = () => { btnMic.style.color = ""; };
+            recognition.onend = () => { btnMic.style.color = ""; };
+        } else {
+            btnMic.addEventListener("click", () => {
+                alert("Speech recognition is not supported in this browser. Please type your message.");
+            });
+        }
+
+        // 6. Action Chips click
+        document.querySelectorAll(".chip").forEach(chip => {
+            chip.addEventListener("click", () => {
+                const query = chip.getAttribute("data-query");
+                handleSendMessage(query);
+            });
+        });
+
+        // 7. Message Sending Logic
+        btnHeroSend.addEventListener("click", () => {
+            const text = heroInput.value.trim();
+            if (text) handleSendMessage(text);
+        });
+
+        btnThreadSend.addEventListener("click", () => {
+            const text = threadInput.value.trim();
+            if (text) handleSendMessage(text);
+        });
+
+        heroInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                const text = heroInput.value.trim();
+                if (text) handleSendMessage(text);
+            }
+        });
+
+        threadInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                const text = threadInput.value.trim();
+                if (text) handleSendMessage(text);
+            }
+        });
+
+        function handleSendMessage(userText) {
+            if (!isConversationStarted) {
+                isConversationStarted = true;
+                heroCenter.style.display = "none";
+                chatThreadView.style.display = "flex";
+                stickyBottomBar.style.display = "block";
+            }
+
+            // Append User Bubble
+            appendUserMessage(userText, activeAttachment ? activeAttachment.name : null);
+            clearAttachment();
+            heroInput.value = "";
+            threadInput.value = "";
+
+            // Add new chat to recents
+            updateRecents(userText);
+
+            // Stream AI Response
+            simulateAIResponse(userText);
+        }
+
+        function appendUserMessage(text, attachedFileName) {
+            const row = document.createElement("div");
+            row.className = "msg-row user";
+            
+            let attachHtml = "";
+            if (attachedFileName) {
+                attachHtml = `<div style="font-size: 0.8rem; background: #e5e7eb; border-radius: 6px; padding: 4px 8px; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 4px;">📎 ${attachedFileName}</div><br>`;
+            }
+
+            row.innerHTML = `
+                <div class="msg-bubble">
+                    ${attachHtml}${escapeHtml(text)}
+                </div>
+            `;
+            messagesContainer.appendChild(row);
+            chatThreadView.scrollTop = chatThreadView.scrollHeight;
+        }
+
+        function simulateAIResponse(prompt) {
+            const row = document.createElement("div");
+            row.className = "msg-row assistant";
+            
+            const bubble = document.createElement("div");
+            bubble.className = "msg-bubble";
+            bubble.innerHTML = `<span style="display: inline-block; animation: pulse 1s infinite;">Thinking...</span>`;
+            
+            row.appendChild(bubble);
+            messagesContainer.appendChild(row);
+            chatThreadView.scrollTop = chatThreadView.scrollHeight;
+
+            // Generate contextual response
+            setTimeout(() => {
+                let answer = "";
+                const lower = prompt.toLowerCase();
+                
+                if (lower.includes("kannada")) {
+                    answer = "Here are a few common Kannada vocabulary words with their English meanings:\n\n" +
+                             "• **Namaskāra (ನಮಸ್ಕಾರ)** — Hello / Greetings\n" +
+                             "• **Hēgiddīra? (ಹೇಗಿದ್ದೀರಾ?)** — How are you?\n" +
+                             "• **Dhanyavāda (ಧನ್ಯವಾದ)** — Thank you\n" +
+                             "• **Haudu (ಹೌದು)** — Yes\n" +
+                             "• **Illa (ಇಲ್ಲ)** — No\n" +
+                             "• **Banni (ಬನ್ನಿ)** — Please come\n" +
+                             "• **Nanna hesaru... (ನನ್ನ ಹೆಸರು...)** — My name is...";
+                } else if (lower.includes("write") || lower.includes("edit")) {
+                    answer = "I'm ready to help you draft, polish, or rewrite your content! Please share the draft, paragraph, or tone you'd like me to apply.";
+                } else if (lower.includes("search")) {
+                    answer = "I searched for recent advancements: Modern LLMs are now featuring multi-turn conversation memory, grounded retrieval-augmented generation (RAG) over private documents, and local edge inference with sub-second token latency.";
+                } else {
+                    answer = `I am your ChatGPT Cloud assistant. I received your request: "${prompt}".\n\nHow else can I assist your workflow today?`;
+                }
+
+                streamText(bubble, answer);
+            }, 600);
+        }
+
+        function streamText(container, fullText) {
+            container.innerHTML = "";
+            let idx = 0;
+            const interval = setInterval(() => {
+                container.innerHTML = formatMarkdown(fullText.substring(0, idx + 1));
+                idx++;
+                chatThreadView.scrollTop = chatThreadView.scrollHeight;
+                if (idx >= fullText.length) {
+                    clearInterval(interval);
+                }
+            }, 18);
+        }
+
+        function updateRecents(title) {
+            const cleanTitle = title.length > 24 ? title.substring(0, 24) + "..." : title;
+            const newLi = document.createElement("li");
+            newLi.className = "recent-item active";
+            newLi.innerHTML = `<span class="recent-title">${escapeHtml(cleanTitle)}</span>`;
+            
+            document.querySelectorAll(".recent-item").forEach(i => i.classList.remove("active"));
+            recentsList.insertBefore(newLi, recentsList.firstChild);
+        }
+
+        // 8. Sidebar Toggle
+        btnToggleSidebar.addEventListener("click", () => {
+            sidebar.classList.toggle("collapsed");
+        });
+        btnOpenSidebar.addEventListener("click", () => {
+            sidebar.classList.remove("collapsed");
+        });
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function formatMarkdown(str) {
+            let res = escapeHtml(str);
+            res = res.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            res = res.replace(/\n/g, '<br>');
+            return res;
+        }
     </script>
-    </script>
+
 </body>
 </html>
-

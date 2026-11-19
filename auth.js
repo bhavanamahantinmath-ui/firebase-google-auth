@@ -28,19 +28,10 @@ const formSubtitle = document.getElementById("form-subtitle");
 
 let isSignUpMode = false;
 
-// Helper: Redirect directly to the main LocalGPT Pro AI assistant workspace
+// Helper: Redirect to the ChatGPT Cloud interface (home.html)
 async function redirectToMainPage(user) {
     if (!user) return;
-    try {
-        const token = await user.getIdToken();
-        const email = encodeURIComponent(user.email || "");
-        const name = encodeURIComponent(user.displayName || (user.email ? user.email.split("@")[0] : "User"));
-        const uid = encodeURIComponent(user.uid || "");
-        const pic = encodeURIComponent(user.photoURL || "");
-        window.location.href = `http://localhost:8501/?email=${email}&name=${name}&uid=${uid}&token=${encodeURIComponent(token)}&picture=${pic}`;
-    } catch (e) {
-        window.location.href = `http://localhost:8501/?email=${encodeURIComponent(user.email || "")}&name=${encodeURIComponent(user.displayName || "")}&uid=${encodeURIComponent(user.uid || "")}`;
-    }
+    window.location.href = "home.html";
 }
 
 // Ensure user stays on the Google Authentication page when opening the app.
