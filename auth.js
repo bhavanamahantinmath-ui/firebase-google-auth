@@ -31,6 +31,16 @@ let isSignUpMode = false;
 // Helper: Redirect to the ChatGPT Cloud interface (home.html)
 async function redirectToMainPage(user) {
     if (!user) return;
+    try {
+        const displayName = user.displayName || user.email.split("@")[0];
+        localStorage.setItem("userDisplayName", displayName);
+        localStorage.setItem("userEmail", user.email);
+        if (user.photoURL) {
+            localStorage.setItem("userPhotoURL", user.photoURL);
+        }
+    } catch (e) {
+        console.warn("Could not cache user credentials in localStorage:", e);
+    }
     window.location.href = "home.html";
 }
 

@@ -199,9 +199,9 @@
 
                 </div>
 
-                <!-- Attached Files Badge Indicator (if any selected) -->
-                <div id="attachment-badge" style="display: none; margin-top: 10px; font-size: 0.85rem; color: #0d9488; background: rgba(13,148,136,0.1); padding: 4px 12px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px;">
-                    📎 <span id="attachment-name">file.pdf</span>
+                <!-- Attached Files Badge Indicator (hidden by default) -->
+                <div id="attachment-badge" style="display: none; margin-top: 10px; font-size: 0.85rem; color: #0d9488; background: rgba(13,148,136,0.1); padding: 4px 12px; border-radius: 9999px; align-items: center; gap: 6px;">
+                    📎 <span id="attachment-name"></span>
                     <span id="btn-remove-attachment" style="cursor: pointer; margin-left: 6px; font-weight: bold;">✕</span>
                 </div>
 
@@ -295,23 +295,41 @@
         let activeAttachment = null;
         let isConversationStarted = false;
 
-        // 1. Firebase Route Guard: verify user is logged in
+        // 1. Immediate Profile Hydration from Local Storage
+        const cachedName = localStorage.getItem("userDisplayName") || "User";
+        const cachedEmail = localStorage.getItem("userEmail") || "";
+        const cachedPhoto = localStorage.getItem("userPhotoURL");
+        if (cachedName && cachedName !== "User") userNameEl.textContent = cachedName;
+        if (cachedEmail) userEmailEl.textContent = cachedEmail;
+        userInitialEl.textContent = (cachedName || "U").charAt(0).toUpperCase();
+        if (cachedPhoto) {
+            userAvatarEl.src = cachedPhoto;
+            userAvatarEl.style.display = "block";
+            userInitialEl.style.display = "none";
+        }
+
+        // Firebase Route Guard: verify user is logged in
         onAuthStateChanged(auth, (user) => {
             if (!user) {
-                // Not authenticated -> return to login page
-                window.location.href = "index.html";
+                const hasSession = localStorage.getItem("userEmail");
+                if (!hasSession) {
+                    window.location.href = "index.html";
+                }
                 return;
             }
 
-            // Hydrate User Profile
+            // Hydrate User Profile with live Firebase credentials
             const displayName = user.displayName || user.email.split("@")[0];
             userNameEl.textContent = displayName;
             userEmailEl.textContent = user.email;
+            localStorage.setItem("userDisplayName", displayName);
+            localStorage.setItem("userEmail", user.email);
 
             if (user.photoURL) {
                 userAvatarEl.src = user.photoURL;
                 userAvatarEl.style.display = "block";
                 userInitialEl.style.display = "none";
+                localStorage.setItem("userPhotoURL", user.photoURL);
             } else {
                 userInitialEl.textContent = displayName.charAt(0).toUpperCase();
                 userInitialEl.style.display = "flex";
@@ -322,6 +340,7 @@
         // 2. Logout handler
         btnSignout.addEventListener("click", async () => {
             if (confirm("Are you sure you want to sign out?")) {
+                localStorage.clear();
                 await signOut(auth);
                 window.location.href = "index.html";
             }
@@ -336,6 +355,8 @@
             messagesContainer.innerHTML = "";
             heroInput.value = "";
             threadInput.value = "";
+            btnHeroSend.innerHTML = waveSvg;
+            btnThreadSend.innerHTML = waveSvg;
             clearAttachment();
             document.querySelectorAll(".recent-item").forEach(i => i.classList.remove("active"));
             const firstItem = document.querySelector(".recent-item");
@@ -385,9 +406,11 @@
                 const speechText = event.results[0][0].transcript;
                 if (!isConversationStarted) {
                     heroInput.value = speechText;
+                    btnHeroSend.innerHTML = sendSvg;
                     heroInput.focus();
                 } else {
                     threadInput.value = speechText;
+                    btnThreadSend.innerHTML = sendSvg;
                     threadInput.focus();
                 }
                 btnMic.style.color = "";
@@ -409,15 +432,38 @@
             });
         });
 
-        // 7. Message Sending Logic
+        // 7. Dynamic Send Icon & Message Sending Logic
+        const sendSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>`;
+        const waveSvg = `<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 3a1 1 0 0 1 1 1v16a1 1 0 0 1-2 0V4a1 1 0 0 1 1-1zm5 4a1 1 0 0 1 1 1v8a1 1 0 0 1-2 0V8a1 1 0 0 1 1-1zM7 7a1 1 0 0 1 1 1v8a1 1 0 0 1-2 0V8a1 1 0 0 1 1-1zm14 3a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM3 10a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/></svg>`;
+
+        heroInput.addEventListener("input", () => {
+            const hasText = heroInput.value.trim().length > 0;
+            btnHeroSend.innerHTML = hasText ? sendSvg : waveSvg;
+            btnHeroSend.title = hasText ? "Send message" : "Voice Mode";
+        });
+
+        threadInput.addEventListener("input", () => {
+            const hasText = threadInput.value.trim().length > 0;
+            btnThreadSend.innerHTML = hasText ? sendSvg : waveSvg;
+            btnThreadSend.title = hasText ? "Send message" : "Voice Mode";
+        });
+
         btnHeroSend.addEventListener("click", () => {
             const text = heroInput.value.trim();
-            if (text) handleSendMessage(text);
+            if (text) {
+                handleSendMessage(text);
+            } else {
+                btnMic.click();
+            }
         });
 
         btnThreadSend.addEventListener("click", () => {
             const text = threadInput.value.trim();
-            if (text) handleSendMessage(text);
+            if (text) {
+                handleSendMessage(text);
+            } else {
+                btnMic.click();
+            }
         });
 
         heroInput.addEventListener("keydown", (e) => {
@@ -437,6 +483,8 @@
         });
 
         function handleSendMessage(userText) {
+            if (!userText || !userText.trim()) return;
+
             if (!isConversationStarted) {
                 isConversationStarted = true;
                 heroCenter.style.display = "none";
@@ -449,6 +497,8 @@
             clearAttachment();
             heroInput.value = "";
             threadInput.value = "";
+            btnHeroSend.innerHTML = waveSvg;
+            btnThreadSend.innerHTML = waveSvg;
 
             // Add new chat to recents
             updateRecents(userText);
@@ -591,9 +641,6 @@
                          `2. **Key Practical Applications**: Used across modern methodologies to optimize outcomes, maintain consistency, and facilitate problem-solving.\n` +
                          `3. **Next Steps**: Would you like a detailed step-by-step tutorial, code examples, or a tailored breakdown for a specific use case?`;
             }
-
-            streamText(bubble, answer);
-        }
 
             streamText(bubble, answer);
         }
