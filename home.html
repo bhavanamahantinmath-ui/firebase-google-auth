@@ -55,6 +55,20 @@
                     </li>
                     <li class="recent-item" data-chat="kannada">
                         <span class="recent-title">Kannada Vocabulary</span>
+                        <div class="recent-actions">
+                            <button class="recent-action-btn edit" title="Rename chat">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                            </button>
+                            <button class="recent-action-btn delete" title="Delete chat">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </li>
                     <li class="recent-item" data-chat="ml">
                         <span class="recent-title">Project Phase 3 Specs</span>
@@ -467,50 +481,87 @@
             
             const bubble = document.createElement("div");
             bubble.className = "msg-bubble";
-            bubble.innerHTML = `<span style="display: inline-block; animation: pulse 1s infinite;">Thinking...</span>`;
+            bubble.innerHTML = `<span style="display: inline-block; animation: pulse 0.6s infinite; color: #0d9488;">●</span>`;
             
             row.appendChild(bubble);
             messagesContainer.appendChild(row);
             chatThreadView.scrollTop = chatThreadView.scrollHeight;
 
-            // Generate contextual response
+            // Generate instant response
             setTimeout(() => {
                 let answer = "";
                 const lower = prompt.toLowerCase();
                 
                 if (lower.includes("kannada")) {
-                    answer = "Here are a few common Kannada vocabulary words with their English meanings:\n\n" +
+                    answer = "Here are essential Kannada vocabulary words with their English meanings:\n\n" +
                              "• **Namaskāra (ನಮಸ್ಕಾರ)** — Hello / Greetings\n" +
                              "• **Hēgiddīra? (ಹೇಗಿದ್ದೀರಾ?)** — How are you?\n" +
+                             "• **Channāgiddīni (ಚೆನ್ನಾಗಿದ್ದೀನಿ)** — I am doing well\n" +
                              "• **Dhanyavāda (ಧನ್ಯವಾದ)** — Thank you\n" +
                              "• **Haudu (ಹೌದು)** — Yes\n" +
                              "• **Illa (ಇಲ್ಲ)** — No\n" +
                              "• **Banni (ಬನ್ನಿ)** — Please come\n" +
+                             "• **Oota āyithā? (ಊಟ ಆಯ್ತಾ?)** — Did you have your meal?\n" +
                              "• **Nanna hesaru... (ನನ್ನ ಹೆಸರು...)** — My name is...";
                 } else if (lower.includes("write") || lower.includes("edit")) {
-                    answer = "I'm ready to help you draft, polish, or rewrite your content! Please share the draft, paragraph, or tone you'd like me to apply.";
+                    answer = "I'm ready! Please share the draft or paragraphs you want me to write, refine, or polish.";
                 } else if (lower.includes("search")) {
-                    answer = "I searched for recent advancements: Modern LLMs are now featuring multi-turn conversation memory, grounded retrieval-augmented generation (RAG) over private documents, and local edge inference with sub-second token latency.";
+                    answer = "Web search completed: Recent breakthroughs highlight multi-modal reasoning, grounded retrieval-augmented generation (RAG), and efficient on-device edge model execution.";
                 } else {
-                    answer = `I am your ChatGPT Cloud assistant. I received your request: "${prompt}".\n\nHow else can I assist your workflow today?`;
+                    answer = `I am your ChatGPT Cloud assistant. I received: "${prompt}".\n\nHow can I help you advance this task further?`;
                 }
 
                 streamText(bubble, answer);
-            }, 600);
+            }, 80);
         }
 
         function streamText(container, fullText) {
             container.innerHTML = "";
             let idx = 0;
+            const chunkSize = 3;
             const interval = setInterval(() => {
-                container.innerHTML = formatMarkdown(fullText.substring(0, idx + 1));
-                idx++;
+                idx += chunkSize;
+                container.innerHTML = formatMarkdown(fullText.substring(0, Math.min(idx, fullText.length)));
                 chatThreadView.scrollTop = chatThreadView.scrollHeight;
                 if (idx >= fullText.length) {
                     clearInterval(interval);
                 }
-            }, 18);
+            }, 12);
         }
+
+        // Attach click listener to Kannada Vocabulary in sidebar
+        document.querySelectorAll(".recent-item").forEach(item => {
+            item.addEventListener("click", (e) => {
+                if (e.target.closest(".recent-action-btn")) return;
+                const title = item.querySelector(".recent-title").textContent.trim();
+                if (title === "New chat") {
+                    resetToHome();
+                } else {
+                    handleSendMessage(title);
+                }
+            });
+        });
+
+        // Edit and Delete handlers
+        document.addEventListener("click", (e) => {
+            const btnEdit = e.target.closest(".recent-action-btn.edit");
+            if (btnEdit) {
+                e.stopPropagation();
+                const titleEl = btnEdit.closest(".recent-item").querySelector(".recent-title");
+                const newTitle = prompt("Rename chat to:", titleEl.textContent);
+                if (newTitle && newTitle.trim()) {
+                    titleEl.textContent = newTitle.trim();
+                }
+            }
+
+            const btnDel = e.target.closest(".recent-action-btn.delete");
+            if (btnDel) {
+                e.stopPropagation();
+                if (confirm("Delete this chat?")) {
+                    btnDel.closest(".recent-item").remove();
+                }
+            }
+        });
 
         function updateRecents(title) {
             const cleanTitle = title.length > 24 ? title.substring(0, 24) + "..." : title;

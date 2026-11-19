@@ -184,6 +184,7 @@ body {
     cursor: pointer;
     transition: all 0.15s ease;
     text-decoration: none;
+    position: relative;
 }
 
 .recent-item:hover {
@@ -201,7 +202,45 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 180px;
+    max-width: 150px;
+}
+
+.recent-actions {
+    display: none;
+    align-items: center;
+    gap: 4px;
+}
+
+.recent-item:hover .recent-actions {
+    display: flex;
+}
+
+.recent-action-btn {
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    padding: 3px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.recent-action-btn:hover {
+    color: #111827;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.recent-action-btn.delete:hover {
+    color: #ef4444;
+    background: #fee2e2;
+}
+
+.recent-action-btn svg {
+    width: 14px;
+    height: 14px;
 }
 
 /* Sidebar Footer (User Info & Sign Out) */
@@ -602,3 +641,4 @@ body {
         padding: 0 10px;
     }
 }
+
